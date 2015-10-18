@@ -2,10 +2,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +57,6 @@ public class Regression {
 				String line = inFile.readLine();
 				while (line != null) {
 					if (!line.contains("gene_label")) {
-						System.out.println("---" + line);
 						String[] splitLine = line
 								.trim()
 								.replace("\"", "")
@@ -78,30 +74,23 @@ public class Regression {
 						String geneName = splitLine[3];
 						String taxon = splitLine[4];
 						String taxonName = splitLine[5];
-						
-						for (int i = 0; i < splitLine.length; i ++){
-							System.out.print(splitLine[i] + " ");
-						}
-						System.out.println();
 
-//						scoreFile.write(gene + "\t"
-//								+ String.valueOf(size.get(gene)) + "\t"
-//								+ geneName + "\t" + taxon + "\t"
-//								+ String.valueOf(size.get(taxon)) + "\t"
-//								+ taxonName + "\t" + score + "\t" + uri + "\n");
+						scoreFile.write(gene + "\t"
+								+ String.valueOf(size.get(gene)) + "\t"
+								+ geneName + "\t" + taxon + "\t"
+								+ String.valueOf(size.get(taxon)) + "\t"
+								+ taxonName + "\t" + score + "\t" + uri + "\n");
 					}
+					line = inFile.readLine();
 				}
 				inFile.close();
-
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
 			scoreFile.flush();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public static Map<String, Integer> loadProfileSizes(String inputSizesFile) {
