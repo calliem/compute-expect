@@ -11,16 +11,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Main {
+public class Main implements ExpectScoreComputation<String>{
 	
-	public static final String absPath = new File("").getAbsolutePath();
-	public static final String resultsDir = "/data/results/";
-	public static final String scoresGeneTaxonPath = absPath + resultsDir
+	private static final String absPath = new File("").getAbsolutePath();
+	private static final String resultsDir = "/data/results/";
+	private static final String scoresGeneTaxonPath = absPath + resultsDir
 			+ "Scores_Gene_Taxon.tsv";
+	private static final String profileSizesPath = absPath + resultsDir
+			+ "ProfileSizes.txt";
+	
+	private static String queryProfile = "queryProfile";
+	private static String corpusProfile = "queryProfile";
 	
 	public static void main(String[] args) {
 		List<ScoreGeneTaxon> scoreList = generateScoreGeneTaxons(scoresGeneTaxonPath);
 		System.out.println(scoreList);
+		
+		Map<String, Map<String, Integer>> profileSizes = generateProfileSizes(profileSizesPath);
+		Map<String, Integer> queryProfileSizes = profileSizes.get(queryProfile);
+		Map<String, Integer> corpusProfileSizes = profileSizes.get(corpusProfile);
+		
+		computeExpectScores(scoreList, queryProfileSizes, corpusProfileSizes);
+		//TODO remove static
 	}
 	
 	/**
@@ -56,22 +68,25 @@ public class Main {
 		return scores;
 	}
 	
-	public static Map<String, Integer> loadProfileSizes(String inputSizesFile) {
-		Map<String, Integer> profileSize = new HashMap<String, Integer>();
+	public static Map<String, Map<String, Integer>> generateProfileSizes(String inputFile) {
+		Map<String, Map<String, Integer>> profileSizes = new HashMap<String, Map<String,Integer>>();
+		Map<String, Integer> queryProfileSizes = new HashMap<String, Integer>();
+		Map<String, Integer> corpusProfileSizes = new HashMap<String, Integer>();
 
-		BufferedReader input;
 		try {
-			String absPath = new File("").getAbsolutePath();
-			input = new BufferedReader(new FileReader(absPath + inputSizesFile));
+			BufferedReader input = new BufferedReader(new FileReader(inputFile));
 
 			String line = input.readLine();
 			while (line != null) {
 				String[] splitString = line.trim().split("\t");
-				String entity = splitString[0];
-				entity = entity.replace("#profile", "");
-				entity = entity.replace("http://purl.obolibrary.org/obo/", "");
-				String size = splitString[1];
-				profileSize.put(entity, Integer.parseInt(size));
+				String URI = splitString[0];
+				URI = URI.replace("#profile", "").replace("http://purl.obolibrary.org/obo/", "");
+				//TODO: what about replacing all the extraneous text in the zfin.org ... files
+				int size = Integer.parseInt(splitString[1]);
+				if (URI.contains("VTO_")) //taxon
+					corpusProfileSizes.put(URI, size);
+				else
+					queryProfileSizes.put(URI, size);
 				line = input.readLine();
 			}
 			input.close();
@@ -80,7 +95,17 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return profileSize;
+		//TODO: return 2 or create an object
+		profileSizes.put(queryProfile,queryProfileSizes);
+		profileSizes.put(corpusProfile, corpusProfileSizes);
+		return profileSizes;
+	}
+	
+	@Override
+	public Map computeExpectScores(Collection scores, Map corpusProfileSizes,
+			Map queryProfileSizes) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
