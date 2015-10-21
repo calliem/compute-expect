@@ -27,36 +27,6 @@ public class ScoreGeneTaxon implements ComparisonScore<String>{
 		myCorpusProfile = taxon;
 	}
 	
-	/**
-	 * Constructor that generates all variables from the inputted file
-	 * @param filePath Absolute path to the to-be-parsed file. File should be formatted like example file scores_gene_taxon.tsv
-	 */
-	public ScoreGeneTaxon(String filePath){
-		try {
-			BufferedReader inputFile = new BufferedReader(new FileReader(filePath));
-			
-			String line = inputFile.readLine();
-			int i = 0;
-			while (line != null) {
-				System.out.println(i); i++;
-				if (!line.contains("gene_label") && !line.contains("taxonname")) {
-					String[] splitLine = line.trim().replace("\"", "")
-							.replace("^^<http://www.w3.org/2001/XMLSchema#string>","")
-							.replace("^^<http://www.w3.org/2001/XMLSchema#double>","").replace("<", "")
-							.replace(">", "").replace("http://purl.obolibrary.org/obo/", "").split("\t");
-					myID = splitLine[0]; // URI
-					mySimilarity = Double.parseDouble(splitLine[1]); // score
-					myQueryProfile = splitLine[2]; // gene
-					myCorpusProfile = splitLine[4]; // taxon
-				}
-				line = inputFile.readLine();
-			}
-			inputFile.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	@Override
 	public String id() {
 		return myID;

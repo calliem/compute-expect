@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -16,8 +19,41 @@ public class Main {
 			+ "Scores_Gene_Taxon.tsv";
 	
 	public static void main(String[] args) {
-		ScoreGeneTaxon scores = new ScoreGeneTaxon(scoresGeneTaxonPath);
-		System.out.println(scores);
+		List<ScoreGeneTaxon> scoreList = generateScoreGeneTaxons(scoresGeneTaxonPath);
+		System.out.println(scoreList);
+	}
+	
+	/**
+	 * Constructor that generates ScoreGeneTaxon objects from the inputted file and returns a collection of them
+	 * @param filePath Absolute path to the to-be-parsed file. File should be formatted like example file scores_gene_taxon.tsv
+	 */
+	public static List<ScoreGeneTaxon> generateScoreGeneTaxons(String filePath){
+		List<ScoreGeneTaxon> scores = new ArrayList<ScoreGeneTaxon>();
+		try {
+			BufferedReader inputFile = new BufferedReader(new FileReader(filePath));
+			
+			String line = inputFile.readLine();
+			int i = 0;
+			while (line != null) {
+				System.out.println(i); i++;
+				if (!line.contains("gene_label") && !line.contains("taxonname")) {
+					String[] splitLine = line.trim().replace("\"", "")
+							.replace("^^<http://www.w3.org/2001/XMLSchema#string>","")
+							.replace("^^<http://www.w3.org/2001/XMLSchema#double>","").replace("<", "")
+							.replace(">", "").replace("http://purl.obolibrary.org/obo/", "").split("\t");
+					String URI = splitLine[0]; 
+					double similarityScore = Double.parseDouble(splitLine[1]); 
+					String gene = splitLine[2]; 
+					String taxon = splitLine[4]; 
+					scores.add(new ScoreGeneTaxon(URI, similarityScore, gene, taxon));
+				}
+				line = inputFile.readLine();
+			}
+			inputFile.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return scores;
 	}
 	
 	public static Map<String, Integer> loadProfileSizes(String inputSizesFile) {
