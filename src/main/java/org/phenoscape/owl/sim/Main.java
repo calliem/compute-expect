@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Main implements ExpectScoreComputation<String>{
+public class Main {
 	
 	private static final String absPath = new File("").getAbsolutePath();
 	private static final String resultsDir = "/data/results/";
@@ -24,14 +24,17 @@ public class Main implements ExpectScoreComputation<String>{
 	private static String corpusProfile = "queryProfile";
 	
 	public static void main(String[] args) {
-		List<ScoreGeneTaxon> scoreList = generateScoreGeneTaxons(scoresGeneTaxonPath);
+		Collection<ComparisonScore<String>> scoreList = generateScoreGeneTaxons(scoresGeneTaxonPath);
 		System.out.println(scoreList);
 		
 		Map<String, Map<String, Integer>> profileSizes = generateProfileSizes(profileSizesPath);
 		Map<String, Integer> queryProfileSizes = profileSizes.get(queryProfile);
 		Map<String, Integer> corpusProfileSizes = profileSizes.get(corpusProfile);
 		
-		computeExpectScores(scoreList, queryProfileSizes, corpusProfileSizes);
+		ExpectScoreComputer computeExpect = new ExpectScoreComputer();
+		//TODO: how to keep this implementation generic? Probably doesn't fully matter since this is only a testing class that will not be run
+		Map<String, Double> expectScores = computeExpect.computeExpectScores(scoreList, queryProfileSizes, corpusProfileSizes);
+		//TODO: could technically pull all these parameters from scores_sizes.txt
 		//TODO remove static
 	}
 	
@@ -39,8 +42,8 @@ public class Main implements ExpectScoreComputation<String>{
 	 * Constructor that generates ScoreGeneTaxon objects from the inputted file and returns a collection of them
 	 * @param filePath Absolute path to the to-be-parsed file. File should be formatted like example file scores_gene_taxon.tsv
 	 */
-	public static List<ScoreGeneTaxon> generateScoreGeneTaxons(String filePath){
-		List<ScoreGeneTaxon> scores = new ArrayList<ScoreGeneTaxon>();
+	public static Collection<ComparisonScore<String>> generateScoreGeneTaxons(String filePath){
+		Collection<ComparisonScore<String>> scores = new ArrayList<ComparisonScore<String>>();
 		try {
 			BufferedReader inputFile = new BufferedReader(new FileReader(filePath));
 			
@@ -57,7 +60,7 @@ public class Main implements ExpectScoreComputation<String>{
 					double similarityScore = Double.parseDouble(splitLine[1]); 
 					String gene = splitLine[2]; 
 					String taxon = splitLine[4]; 
-					scores.add(new ScoreGeneTaxon(URI, similarityScore, gene, taxon));
+					scores.add(new ScoreGeneTaxon(URI, similarityScore, gene, taxon)); //TODO: not sure if this will work since implementation doesn't have a constructor
 				}
 				line = inputFile.readLine();
 			}
@@ -90,8 +93,6 @@ public class Main implements ExpectScoreComputation<String>{
 				line = input.readLine();
 			}
 			input.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -99,13 +100,6 @@ public class Main implements ExpectScoreComputation<String>{
 		profileSizes.put(queryProfile,queryProfileSizes);
 		profileSizes.put(corpusProfile, corpusProfileSizes);
 		return profileSizes;
-	}
-	
-	@Override
-	public Map computeExpectScores(Collection scores, Map corpusProfileSizes,
-			Map queryProfileSizes) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

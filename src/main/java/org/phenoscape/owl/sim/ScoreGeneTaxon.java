@@ -1,11 +1,5 @@
 package org.phenoscape.owl.sim;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-
 /**
  * Temporary ComparisonScore implementation for testing purposes. This object 
  * will essentially hold all important information from an individual row of the 
