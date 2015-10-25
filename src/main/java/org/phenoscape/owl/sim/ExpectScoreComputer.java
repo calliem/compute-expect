@@ -36,14 +36,12 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 	}
 	
 	private double[] regM (Collection<ComparisonScore<String>> scores, Map<String, Integer> taxonProfileSizes, Map<String, Integer> geneProfileSizes){
+		System.out.println();
 		System.out.println("Doing Regression");
 		
-		if (taxonProfileSizes.size() != geneProfileSizes.size()){
-			System.err.println("(Temporary) error: gene and taxon x_i vectors should be of the same size");
-		}
-		
 		double[] y = new double[scores.size()];
-		double[][] x = new double[geneProfileSizes.size()][numColumns];
+		double[][] x = new double[scores.size()][numColumns];
+		System.out.println("x is " + scores.size() + " x" + numColumns);
 
 		int i = 0;
 		for (ComparisonScore<String> s: scores){
@@ -56,38 +54,14 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 			System.out.println(s.corpusProfile());
 			System.out.println("gene " + geneProfileSizes);
 			System.out.println("taxon " + taxonProfileSizes);
-			System.out.println(taxonProfileSizes);
-			x[i][0] = geneProfileSizes.get(s.id()); //TODO: remove magic values
-			x[i][1] = taxonProfileSizes.get(s.id());
+			System.out.println(s.queryProfile());
+			System.out.println(geneProfileSizes.get(s.queryProfile()));
+			x[i][0] = Math.log(geneProfileSizes.get(s.queryProfile())); //TODO: remove magic values
+			x[i][1] = Math.log(taxonProfileSizes.get(s.corpusProfile()));
 			x[i][2] = 1;
 			
 			i++;
 		}
-		
-		
-		
-//		int col = 0;
-//		int row = 0;
-//		System.out.println("size" + geneProfileSizes.size());
-//		for (Integer genes: geneProfileSizes.values()){
-//			System.out.println("genes " + genes + " " + Math.log(genes));
-//			x[row][col] = Math.log(genes); //log-transform
-//			row++;
-//		}
-//		
-//		col = 1;
-//		row = 0;
-//		for (Integer taxons: taxonProfileSizes.values()){ //TODO: incorrect -> each variable and coefficient should be kept together with the same ID. 
-//			System.out.println("taxons " + taxons + " " + Math.log(taxons));
-//			x[row][col] = Math.log(taxons); //log-transform
-//			row ++;
-//		}
-//		System.out.println("taxonProfSizes" + taxonProfileSizes.size());
-//		
-//		col = 2;
-//		for (row = 0; row < x.length; row++){
-//			x[row][col] = 1;
-//		}
 		
 		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();		
 		regression.newSampleData(y, x);
