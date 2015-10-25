@@ -41,15 +41,6 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		if (taxonProfileSizes.size() != geneProfileSizes.size()){
 			System.err.println("(Temporary) error: gene and taxon x_i vectors should be of the same size");
 		}
-		//TODO: what is this was a map? how would this method work?
-		
-		
-//		for (String URI: geneProfileSizes.keySet()){
-//			
-//			
-//		}
-		
-		
 		
 		double[] y = new double[scores.size()];
 		double[][] x = new double[geneProfileSizes.size()][numColumns];
