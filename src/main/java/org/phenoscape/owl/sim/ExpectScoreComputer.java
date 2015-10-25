@@ -19,13 +19,12 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		// They are iterated through and logged. 
 		// TODO: double check this
 
-		
-		
 		double[] coefficients = regM(scores, corpusProfileSizes, queryProfileSizes);
 		double geneCoeff = coefficients[0];
 		double taxonCoeff = coefficients[1];
 		double constant = coefficients[2];
 		
+		System.out.println("-----------");
 		System.out.println("coefficients");
 		System.out.println(geneCoeff);
 		System.out.println(taxonCoeff);
@@ -44,71 +43,76 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		}
 		//TODO: what is this was a map? how would this method work?
 		
-		// vectorize response variable
+		
+//		for (String URI: geneProfileSizes.keySet()){
+//			
+//			
+//		}
+		
+		
+		
 		double[] y = new double[scores.size()];
+		double[][] x = new double[geneProfileSizes.size()][numColumns];
+
 		int i = 0;
 		for (ComparisonScore<String> s: scores){
+			// vectorize response variable
 			y[i] = s.similarity();
+			
+			// setup dependent variables
+			System.out.println(s.id());
+			System.out.println(s.queryProfile());
+			System.out.println(s.corpusProfile());
+			System.out.println("gene " + geneProfileSizes);
+			System.out.println("taxon " + taxonProfileSizes);
+			System.out.println(taxonProfileSizes);
+			x[i][0] = geneProfileSizes.get(s.id()); //TODO: remove magic values
+			x[i][1] = taxonProfileSizes.get(s.id());
+			x[i][2] = 1;
+			
 			i++;
 		}
 		
-		// setup dependent variables
-		double[][] x = new double[geneProfileSizes.size()][numColumns];
 		
-		int col = 0;
-		int row = 0;
-		System.out.println("size" + geneProfileSizes.size());
-		for (Integer genes: geneProfileSizes.values()){
-			System.out.println("genes " + genes + " " + Math.log(genes));
-			x[row][col] = Math.log(genes); //log-transform
-			row++;
-		}
 		
-		col = 1;
-		row = 0;
-		for (Integer taxons: taxonProfileSizes.values()){ //TODO: incorrect -> each variable and coefficient should be kept together with the same ID. 
-			System.out.println("taxons " + taxons + " " + Math.log(taxons));
-			x[row][col] = Math.log(taxons); //log-transform
-			row ++;
-		}
-		System.out.println("taxonProfSizes" + taxonProfileSizes.size());
-		
-		col = 2;
-		for (row = 0; row < x.length; row++){
-			x[row][col] = 1;
-		}
-		
-		System.out.println("Arrays");
-	//	for (int k = 0; k < y.length; k++)
-	//		System.out.println(y[k]);
-		System.out.println("y length: " + y.length); // length: 199
-//		System.out.println();
-//		System.out.println("print x");
-//		printDoubleArray(x);
-//		System.out.println(x.length);
-//		System.out.println(x[1].length);
-//		System.out.println();
+//		int col = 0;
+//		int row = 0;
+//		System.out.println("size" + geneProfileSizes.size());
+//		for (Integer genes: geneProfileSizes.values()){
+//			System.out.println("genes " + genes + " " + Math.log(genes));
+//			x[row][col] = Math.log(genes); //log-transform
+//			row++;
+//		}
+//		
+//		col = 1;
+//		row = 0;
+//		for (Integer taxons: taxonProfileSizes.values()){ //TODO: incorrect -> each variable and coefficient should be kept together with the same ID. 
+//			System.out.println("taxons " + taxons + " " + Math.log(taxons));
+//			x[row][col] = Math.log(taxons); //log-transform
+//			row ++;
+//		}
+//		System.out.println("taxonProfSizes" + taxonProfileSizes.size());
+//		
+//		col = 2;
+//		for (row = 0; row < x.length; row++){
+//			x[row][col] = 1;
+//		}
 		
 		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();		
+		regression.newSampleData(y, x);
 		
-		//Truncate x for testing purposes
-		double[][] xTruncated = new double[y.length][3];
-		for (int k = 0; k < y.length; k++){
-			for (int j = 0; j < 3; j++)
-				xTruncated[k][j] = x[k][j];
-		}
-		//System.out.println(xTruncated.length);
-		//System.out.println(xTruncated[1].length);
-		regression.newSampleData(y, xTruncated);
-		
+		System.out.println("-----------");
 		System.out.println("Y");
+		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file
 		for (Double yi: y){
 			System.out.print(yi + " ");
 		}
 		
-		System.out.println("xtruncated");
-		System.out.println(xTruncated.length);
-		printDoubleArray(xTruncated);
+		System.out.println();
+		System.out.println("-----------");
+		System.out.println("X: genes \t\t taxons \t\t constant");
+//		System.out.println(xTruncated.length);
+		printDoubleArray(x);
 		
         double[] parameterEstimates = regression.estimateRegressionParameters();
 		return parameterEstimates;

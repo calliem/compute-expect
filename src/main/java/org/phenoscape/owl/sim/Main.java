@@ -13,6 +13,9 @@ import java.util.Map;
 
 public class Main {
 	
+	
+	//TODO: rewrite to get data from the compiled txt file load_profile and etc.  
+	
 	private static final String absPath = new File("").getAbsolutePath();
 	private static final String resultsDir = "/data/results/";
 	private static final String scoresGeneTaxonPath = absPath + resultsDir
@@ -84,6 +87,8 @@ public class Main {
 			
 			while (line != null) {
 				String[] splitString = line.trim().split("\t");
+				for (String sp: splitString)
+					System.out.println("split " + sp);
 				String URI = splitString[0];
 				URI = URI.replace("#profile", "").replace("http://purl.obolibrary.org/obo/", "");
 				//TODO: what about replacing all the extraneous text in the zfin.org ... files
@@ -91,7 +96,7 @@ public class Main {
 				if (URI.contains("VTO_") && corpusProfileSizes.size() < taxonLimitNum) //taxon //TODO: remove && limits in final version. && currently exists for testing
 					corpusProfileSizes.put(URI, size);
 				else if (!URI.contains("VTO_") && queryProfileSizes.size() < geneLimitNum)
-						queryProfileSizes.put(URI, size);
+					queryProfileSizes.put(URI, Integer.parseInt(splitString[4]));
 				else if (queryProfileSizes.size() == geneLimitNum && corpusProfileSizes.size() == taxonLimitNum)
 					break; // TODO: for efficiency during testing. remove this eventually as well
 				line = input.readLine();
