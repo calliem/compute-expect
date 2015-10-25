@@ -1,6 +1,6 @@
 package org.phenoscape.owl.sim;
 
-/*
+/**
  * Temporary translation of expect computation script.
  */
 

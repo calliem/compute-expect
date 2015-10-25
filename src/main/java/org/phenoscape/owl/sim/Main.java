@@ -16,7 +16,7 @@ public class Main {
 	private static final String absPath = new File("").getAbsolutePath();
 	private static final String resultsDir = "/data/results/";
 	private static final String scoresGeneTaxonPath = absPath + resultsDir
-			+ "Scores_Gene_Taxon.tsv";
+			+ "Scores_Gene_Taxon_first200.tsv";
 	private static final String profileSizesPath = absPath + resultsDir
 			+ "ProfileSizes.txt";
 	
@@ -25,7 +25,6 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Collection<ComparisonScore<String>> scoreList = generateScoreGeneTaxons(scoresGeneTaxonPath);
-		System.out.println(scoreList);
 		
 		Map<String, Map<String, Integer>> profileSizes = generateProfileSizes(profileSizesPath);
 		Map<String, Integer> queryProfileSizes = profileSizes.get(queryProfile);
