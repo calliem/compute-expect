@@ -16,7 +16,7 @@ public class Main {
 	private static final String absPath = new File("").getAbsolutePath();
 	private static final String resultsDir = "/data/results/";
 	private static final String scoresGeneTaxonPath = absPath + resultsDir
-			+ "Scores_Gene_Taxon_first200.tsv";
+			+ "Scores_Gene_Taxon_first5.txt";
 	private static final String profileSizesPath = absPath + resultsDir
 			+ "ProfileSizes.txt";
 	
@@ -34,7 +34,7 @@ public class Main {
 		//TODO: how to keep this implementation generic? Probably doesn't fully matter since this is only a testing class that will not be run
 		Map<String, Double> expectScores = computeExpect.computeExpectScores(scoreList, queryProfileSizes, corpusProfileSizes);
 		//TODO: could technically pull all these parameters from scores_sizes.txt
-		//TODO remove static
+		//TODO static
 	}
 	
 	/**
@@ -79,16 +79,21 @@ public class Main {
 			BufferedReader input = new BufferedReader(new FileReader(inputFile));
 
 			String line = input.readLine();
+			final int taxonLimitNum = 8;
+			final int geneLimitNum = 8; 
+			
 			while (line != null) {
 				String[] splitString = line.trim().split("\t");
 				String URI = splitString[0];
 				URI = URI.replace("#profile", "").replace("http://purl.obolibrary.org/obo/", "");
 				//TODO: what about replacing all the extraneous text in the zfin.org ... files
 				int size = Integer.parseInt(splitString[1]);
-				if (URI.contains("VTO_")) //taxon
+				if (URI.contains("VTO_") && corpusProfileSizes.size() < taxonLimitNum) //taxon //TODO: remove && limits in final version. && currently exists for testing
 					corpusProfileSizes.put(URI, size);
-				else
-					queryProfileSizes.put(URI, size);
+				else if (!URI.contains("VTO_") && queryProfileSizes.size() < geneLimitNum)
+						queryProfileSizes.put(URI, size);
+				else if (queryProfileSizes.size() == geneLimitNum && corpusProfileSizes.size() == taxonLimitNum)
+					break; // TODO: for efficiency during testing. remove this eventually as well
 				line = input.readLine();
 			}
 			input.close();
@@ -96,8 +101,12 @@ public class Main {
 			e.printStackTrace();
 		}
 		//TODO: return 2 or create an object
+		
 		profileSizes.put(queryProfile,queryProfileSizes);
 		profileSizes.put(corpusProfile, corpusProfileSizes);
+		System.out.println("test sizes");
+		System.out.println(queryProfileSizes.size());
+		System.out.println(corpusProfileSizes.size());
 		return profileSizes;
 	}
 

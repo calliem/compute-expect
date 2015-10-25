@@ -15,6 +15,12 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 			Map<String, Integer> corpusProfileSizes,
 			Map<String, Integer> queryProfileSizes) {
 		
+		// Assumed that the value of scores being passed in is exactly as parsed from the documents. 
+		// They are iterated through and logged. 
+		// TODO: double check this
+
+		
+		
 		double[] coefficients = regM(scores, corpusProfileSizes, queryProfileSizes);
 		double geneCoeff = coefficients[0];
 		double taxonCoeff = coefficients[1];
@@ -51,17 +57,21 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		
 		int col = 0;
 		int row = 0;
+		System.out.println("size" + geneProfileSizes.size());
 		for (Integer genes: geneProfileSizes.values()){
-			x[row][col] = genes;
+			System.out.println("genes " + genes + " " + Math.log(genes));
+			x[row][col] = Math.log(genes); //log-transform
 			row++;
 		}
 		
 		col = 1;
 		row = 0;
-		for (Integer taxons: taxonProfileSizes.values()){
-			x[row][col] = taxons;
+		for (Integer taxons: taxonProfileSizes.values()){ //TODO: incorrect -> each variable and coefficient should be kept together with the same ID. 
+			System.out.println("taxons " + taxons + " " + Math.log(taxons));
+			x[row][col] = Math.log(taxons); //log-transform
 			row ++;
 		}
+		System.out.println("taxonProfSizes" + taxonProfileSizes.size());
 		
 		col = 2;
 		for (row = 0; row < x.length; row++){
@@ -85,11 +95,16 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		double[][] xTruncated = new double[y.length][3];
 		for (int k = 0; k < y.length; k++){
 			for (int j = 0; j < 3; j++)
-			xTruncated[k][j] = x[k][j];
+				xTruncated[k][j] = x[k][j];
 		}
 		//System.out.println(xTruncated.length);
 		//System.out.println(xTruncated[1].length);
 		regression.newSampleData(y, xTruncated);
+		
+		System.out.println("Y");
+		for (Double yi: y){
+			System.out.print(yi + " ");
+		}
 		
 		System.out.println("xtruncated");
 		System.out.println(xTruncated.length);
