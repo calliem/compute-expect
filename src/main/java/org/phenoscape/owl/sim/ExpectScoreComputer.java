@@ -7,7 +7,7 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 	
-	private static final int numColumns = 3;
+	private static final int numColumns = 2;
 	
 	@Override
 	public Map<String, Double> computeExpectScores(
@@ -24,11 +24,17 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		double taxonCoeff = coefficients[1];
 		double constant = coefficients[2];
 		
+		System.out.println();
+		System.out.println("RESULTS");
 		System.out.println("-----------");
 		System.out.println("coefficients");
-		System.out.println(geneCoeff);
-		System.out.println(taxonCoeff);
-		System.out.println(constant);
+//		System.out.println(geneCoeff);
+//		System.out.println(taxonCoeff);
+//		System.out.println(constant);
+		
+		for (int i = 0; i < coefficients.length; i++){
+			System.out.println(coefficients[i]);
+		}
 		
 		//TODO: calculate studentied residuals
 		
@@ -41,7 +47,7 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		
 		double[] y = new double[scores.size()];
 		double[][] x = new double[scores.size()][numColumns];
-		System.out.println("x is " + scores.size() + " x" + numColumns);
+		System.out.println("x is a matrix of size " + scores.size() + "x" + (numColumns));
 
 		int i = 0;
 		for (ComparisonScore<String> s: scores){
@@ -49,23 +55,17 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 			y[i] = s.similarity();
 			
 			// setup dependent variables
-			System.out.println(s.id());
-			System.out.println(s.queryProfile());
-			System.out.println(s.corpusProfile());
-			System.out.println("gene " + geneProfileSizes);
-			System.out.println("taxon " + taxonProfileSizes);
-			System.out.println(s.queryProfile());
-			System.out.println(geneProfileSizes.get(s.queryProfile()));
 			x[i][0] = Math.log(geneProfileSizes.get(s.queryProfile())); //TODO: remove magic values
 			x[i][1] = Math.log(taxonProfileSizes.get(s.corpusProfile()));
-			x[i][2] = 1;
-			
+		//	x[i][2] = 1;
 			i++;
 		}
 		
 		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();		
 		regression.newSampleData(y, x);
 		
+		System.out.println();
+		System.out.println("DATA");
 		System.out.println("-----------");
 		System.out.println("Y");
 		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file

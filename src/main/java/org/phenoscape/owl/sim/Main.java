@@ -57,7 +57,7 @@ public class Main {
 			int i = 0;
 			System.out.println("Reading " + filePath);
 			while (line != null) {
-				System.out.print(i + " "); i++;
+//				System.out.print(i + " "); i++;
 
 // For use with ScoreGeneTaxon file:
 //				if (!line.contains("gene_label") && !line.contains("taxonname")) {
