@@ -1,8 +1,11 @@
 package org.phenoscape.owl.sim;
 
 /**
+ * A ComparisonScore holds the results of a semantic similarity comparison between 
+ * the phenotypic profile of a query object and a corpus object. For example, the similarity 
+ * between a gene profile and a taxonomic variation profile.
+ * 
  * @author jbalhoff
- *
  * @param <ID> The type used for an identifier (e.g. IRI, URI, String, etc.).
  */
 public interface ComparisonScore<ID> {
