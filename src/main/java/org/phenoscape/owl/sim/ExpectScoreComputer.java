@@ -15,22 +15,17 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 			Map<String, Integer> corpusProfileSizes,
 			Map<String, Integer> queryProfileSizes) {
 		
-		// Assumed that the value of scores being passed in is exactly as parsed from the documents. 
-		// They are iterated through and logged. 
-		// TODO: double check this
-
 		double[] coefficients = regM(scores, corpusProfileSizes, queryProfileSizes);
-		double geneCoeff = coefficients[0];
-		double taxonCoeff = coefficients[1];
-		double constant = coefficients[2];
+
+		//order of coefficients?
+		double constant = coefficients[0];
+		double geneCoeff = coefficients[1];
+		double taxonCoeff = coefficients[2];
 		
 		System.out.println();
 		System.out.println("RESULTS");
 		System.out.println("-----------");
 		System.out.println("coefficients");
-//		System.out.println(geneCoeff);
-//		System.out.println(taxonCoeff);
-//		System.out.println(constant);
 		
 		for (int i = 0; i < coefficients.length; i++){
 			System.out.println(coefficients[i]);
@@ -38,6 +33,7 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		
 		//TODO: calculate studentied residuals
 		
+		studentize();
 		return null;
 	}
 	
@@ -70,7 +66,7 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		System.out.println("Y");
 		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file
 		for (Double yi: y){
-			System.out.print(yi + " ");
+			System.out.print(yi + ",");
 		}
 		
 		System.out.println();
@@ -79,6 +75,9 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 //		System.out.println(xTruncated.length);
 		printDoubleArray(x);
 		
+		System.out.println(regression.isNoIntercept());
+//		System.out.println(regression.getX());
+		regression.calculateHat();
         double[] parameterEstimates = regression.estimateRegressionParameters();
 		return parameterEstimates;
 	}
@@ -90,5 +89,11 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		    }
 		    System.out.println();
 		}
+	}
+	
+	private void studentize(){
+		System.out.println("Calculating studentized residuals");
+		
+		
 	}
 }

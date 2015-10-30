@@ -47,7 +47,6 @@ public class Regression {
 	}
 
 	public static void getScores() {
-
 		// TODO: os package code
 		// if not os.path.exists(resultdir):
 		// os.makedirs(resultdir)
