@@ -14,7 +14,7 @@ public class Main {
 	private static final String absPath = new File("").getAbsolutePath();
 	private static final String resultsDir = "/data/results/";
 	private static final String scoresGeneTaxonPath = absPath + resultsDir
-			+ "Scores_Sizes_first100.txt";
+			+ "Scores_Sizes_rand200.tsv";
 			//+ "Scores_Gene_Taxon_first5.txt";
 //	private static final String profileSizesPath = absPath + resultsDir
 //			+ "ProfileSizes.txt";
