@@ -18,7 +18,7 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		double[] coefficients = regM(scores, corpusProfileSizes, queryProfileSizes);
 
 		//order of coefficients?
-		double constant = coefficients[0];
+		double constant = coefficients[2];
 		double geneCoeff = coefficients[1];
 		double taxonCoeff = coefficients[2];
 		
