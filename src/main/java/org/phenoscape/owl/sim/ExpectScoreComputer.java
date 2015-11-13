@@ -76,7 +76,6 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 			// setup dependent variables
 			x[i][0] = Math.log(geneProfileSizes.get(s.queryProfile())); //TODO: remove magic values
 			x[i][1] = Math.log(taxonProfileSizes.get(s.corpusProfile()));
-		//	x[i][2] = 1;
 			i++;
 		}
 		
@@ -95,11 +94,9 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		System.out.println();
 		System.out.println("-----------");
 		System.out.println("X: genes \t\t taxons \t\t constant");
-//		System.out.println(xTruncated.length);
 		printDoubleArray(x);
 		
 		System.out.println(regression.isNoIntercept());
-//		System.out.println(regression.getX());
 		regression.calculateHat();
         double[] parameterEstimates = regression.estimateRegressionParameters();
 		return parameterEstimates;
