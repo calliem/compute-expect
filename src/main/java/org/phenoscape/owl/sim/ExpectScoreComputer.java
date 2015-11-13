@@ -1,6 +1,7 @@
 package org.phenoscape.owl.sim;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
@@ -33,9 +34,31 @@ public class ExpectScoreComputer implements ExpectScoreComputation<String> {
 		
 		//TODO: calculate studentied residuals
 		
-		studentize();
-		return null;
+		Map<String, Double> studentizedResiduals = studentize(); //TODO: use uib.basecode.math.
+		// test for same result
+		// pass in coefficients and coefficient estimates
+		// download jar file
+		//http://chibi.ubc.ca/faculty/pavlidis/basecode/dependencies.html
+		//http://chibi.ubc.ca/faculty/pavlidis/basecode/apidocs/
+		
+		 //TODO: how to parse number of taxa
+		
+		int numTaxa = queryProfileSizes.size(); //TODO: check what numTaxa represents
+		return computeExpect(studentizedResiduals, numTaxa);
 	}
+	
+	private Map<String, Double> computeExpect(Map<String, Double> studentizedResiduals, int numTaxa) {
+		Map<String, Double> expectScore = new HashMap<String, Double>();
+		
+		for (String ID : studentizedResiduals.keySet()){
+			double studRes = studentizedResiduals.get(ID);
+			double pValue = 1 - Math.exp(-1 * Math.exp(-1 * studRes * Math.PI / Math.sqrt(6) + 0.5772156649));
+			double expect = pValue * numTaxa;
+			expectScore.put(ID, expect);
+		}
+				
+		return expectScore; 
+	};
 	
 	private double[] regM (Collection<ComparisonScore<String>> scores, Map<String, Integer> taxonProfileSizes, Map<String, Integer> geneProfileSizes){
 		System.out.println();
