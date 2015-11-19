@@ -15,6 +15,7 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 	private double[] y;
 	private double[][] x;
 	private Map<String, Integer> identifiers;
+	private static final int numTaxa = 659;
 	
 	//TODO: probably make this one global
 //	private Collection<ComparisonScore<String>> scores;
@@ -25,27 +26,13 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 			Map<String, Integer> corpusProfileSizes,
 			Map<String, Integer> queryProfileSizes) {
 		
+		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
+				// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
+		
 		//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
 		formatData(scores, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
 		double[] coefficients = regM();
-		
-
-		
-		//TODO: calculate studentied residuals
-		
-		Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
-		// test for same result
-		// pass in coefficients and coefficient estimates
-		// download jar file
-		//http://chibi.ubc.ca/faculty/pavlidis/basecode/dependencies.html
-		//http://chibi.ubc.ca/faculty/pavlidis/basecode/apidocs/
-		
-		 //TODO: how to parse number of taxa
-		
-		int numTaxa = queryProfileSizes.size(); //TODO: check what numTaxa represents
-		
-		
-		return null; //computeExpect(studentizedResiduals, numTaxa);
+		return calculateExpectScoresMap(coefficients);
 	}
 	
 	//to keep the same identifiers, we include a map of the URI to the i index, or can consider just using a map for URI's to Y and another map for URI's to x.
@@ -89,18 +76,18 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		
 	}
 	
-	private Map<String, Double> computeExpect(Map<String, Double> studentizedResiduals, int numTaxa) {
-		Map<String, Double> expectScore = new HashMap<String, Double>();
-		
-		for (String ID : studentizedResiduals.keySet()){
-			double studRes = studentizedResiduals.get(ID);
-			double pValue = 1 - Math.exp(-1 * Math.exp(-1 * studRes * Math.PI / Math.sqrt(6) + 0.5772156649));
-			double expect = pValue * numTaxa;
-			expectScore.put(ID, expect);
-		}
-				
-		return expectScore; 
-	};
+//	private Map<String, Double> computeExpect(Map<String, Double> studentizedResiduals, int numTaxa) {
+//		Map<String, Double> expectScore = new HashMap<String, Double>();
+//		
+//		for (String ID : studentizedResiduals.keySet()){
+//			double studRes = studentizedResiduals.get(ID);
+//			double pValue = 1 - Math.exp(-1 * Math.exp(-1 * studRes * Math.PI / Math.sqrt(6) + 0.5772156649));
+//			double expect = pValue * numTaxa;
+//			expectScore.put(ID, expect);
+//		}
+//				
+//		return expectScore; 
+//	};
 	
 	private double[] regM (){
 		System.out.println();
@@ -129,7 +116,7 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		}
 	}
 	
-	private Map<String, Double> computeStudentizedResiduals(double[] coefficients){
+	private Map<String, Double> calculateExpectScoresMap(double[] coefficients){
 		System.out.println("Calculating studentized residuals");
 		RealMatrix hatMatrix = regression.calculateHat();
 		double[] residuals = regression.estimateResiduals();
@@ -146,20 +133,26 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		System.out.println("-----------");
 		System.out.println("coefficients");
 		
-		double sigma = regression.calculateResidualSumOfSquares() / y.length;
-		System.out.println("sigma " + sigma);
-		
 		for (int i = 0; i < coefficients.length; i++){
 			System.out.println(coefficients[i]);
 		}
+		System.out.println();
+		
+		double sigma = regression.calculateResidualSumOfSquares() / y.length;
+		System.out.println("sigma " + sigma);
 		
 		for (String URI: identifiers.keySet()){
 			int index = identifiers.get(URI);
 			double[] xVector = x[index];
 			double yValue = y[index];
-			System.out.println(URI);
 			
-			expectScores.put(URI, studentize(sigma, residuals[index], hatMatrix.getEntry(index, index))); //studentized residuals for now
+			System.out.println();
+			System.out.println("URI: " + URI);
+			
+			double studentizedResidual = studentize(sigma, residuals[index], hatMatrix.getEntry(index, index));
+			double expectScore = computeExpect(studentizedResidual, numTaxa);
+			System.out.println("expectScore: " + expectScore);
+			expectScores.put(URI, expectScore); //studentized residuals for now
 		}
 		
 		return expectScores;
@@ -169,21 +162,38 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		//predicted = 
 		//rawResidual = 
 		//hatMatrix.getEntry(i, j);
-		
-		
+	}
+	
+	private double computeExpect(double studRes, int databaseSize){
+		double pValue = 1 - Math.exp(-1 * Math.exp(-1 * studRes * Math.PI / Math.sqrt(6) + 0.5772156649));
+		return pValue * databaseSize;
 	}
 
 	private double studentize(double sigma, double rawResidual, double hii) {
-		//double predictedY = coefficients[0];
-//		for (int i = 1; i < coefficients.length; i ++){
-//			//always one more coefficient than xvector because of the beta0 intercept
-//			predictedY += xVector[i-1] * coefficients[i];
-//		}
-//		double rawResidual = yValue - predictedY;
-//		System.out.println("residual from API " + residual);
-		System.out.println(rawResidual/((sigma) * Math.sqrt(1-hii)));
-		return rawResidual/((sigma) * Math.sqrt(1-hii));
+		System.out.println("Studentized Residual: " + rawResidual/(Math.sqrt(sigma * (1-hii))));
+		System.out.println("raw residual: " + rawResidual); // matches R
+		System.out.println("hii: " + hii);
+
+		System.out.println("more testing:");
+		System.out.println("denominator: " +  Math.sqrt((sigma) * (1-hii)));
+		return rawResidual/(Math.sqrt(sigma * (1-hii)));
+		// result is calculated correctly, but lack of precision in R suggests a different answer. Lack of precision in python matches the unprecise R code.
+		// Using studres() in R gives a different result entirely
 	}
 	
-	// get 659 from the test file .... should be passed it correctly 
+	/* For studentized residuals comparison purposes:
+	 	URI: http://purl.org/phenoscape/uuid/70dd3fa4-3cde-40f2-8ed6-799f92b17077
+		Java: 0.6200053556932885
+		Python: 0.571616694057
+		R: 0.55995704
+		
+		For expect score:
+		Java: 364.1178879169344
+		Python: 378.916326656
+	*/
+	
+	/* URI: http://purl.org/phenoscape/uuid/b5b8de28-aaa2-466a-9809-dd8754f52565
+	   Python: 348.311894559
+	   Java: 331.42292875911903
+	  */
 }

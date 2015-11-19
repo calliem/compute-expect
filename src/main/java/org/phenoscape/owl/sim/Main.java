@@ -34,7 +34,7 @@ public class Main {
 		// instead of rebuilding it
 		generateSGTfromScoresSizes(scoresSizesPath);
 
-		ExpectScoreComputer computeExpect = new ExpectScoreComputer();
+		ExpectScoreComputer<String> computeExpect = new ExpectScoreComputer<String>();
 		// TODO: keep this implementation generic - may not fully matter since
 		// this is only a testing class that will not be run
 		Map<String, Double> expectScores = computeExpect.computeExpectScores(
@@ -64,9 +64,8 @@ public class Main {
 				i++;
 
 				// For use with score sizes file:
-				if (!line.contains("Score") && !line.contains("score")) { // TODO:
-																			// ignore
-																			// case
+				if (!line.contains("Score") && !line.contains("score")) { 
+					// TODO:ignore case
 					String[] data = line.trim().split("\t");
 
 					double similarityScore = Double.parseDouble(data[6]);
@@ -75,15 +74,7 @@ public class Main {
 					String taxon = data[3];
 					scoreList.add(new ScoreGeneTaxon(URI, similarityScore,
 							gene, taxon));
-					queryProfileSizes.put(gene, Integer.parseInt(data[1])); // TODO:
-																			// sizes
-																			// need
-																			// to
-																			// be
-																			// logged
-																			// in
-																			// the
-																			// regression
+					queryProfileSizes.put(gene, Integer.parseInt(data[1]));
 					corpusProfileSizes.put(taxon, Integer.parseInt(data[4]));
 				}
 
