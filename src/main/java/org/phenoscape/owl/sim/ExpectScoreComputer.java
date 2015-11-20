@@ -7,56 +7,56 @@ import java.util.Map;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
-public class ExpectScoreComputer<String> implements ExpectScoreComputation<String> { 
+public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> { 
 	//template the String to a generic object
 	
 	private static final int numColumns = 2;
 	private OLSMultipleLinearRegression regression;
 	private double[] y;
 	private double[][] x;
-	private Map<String, Integer> identifiers;
+	private Map<ID, Integer> identifiers;
 	private static final int numTaxa = 659;
 	
 	//TODO: probably make this one global
 //	private Collection<ComparisonScore<String>> scores;
 	
-	@Override
-	public Map<String, Double> computeExpectScores(
-			Collection<ComparisonScore<String>> scores,
-			Map<String, Integer> corpusProfileSizes,
-			Map<String, Integer> queryProfileSizes) {
-		
-		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
-				// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
-		
-		//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
-		formatData(scores, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
-		double[] coefficients = regM();
-		return calculateExpectScoresMap(coefficients);
-	}
+//	@Override
+//	public Map<String, Double> computeExpectScores(
+//			Collection<ComparisonScore<String>> scores,
+//			Map<String, Integer> corpusProfileSizes,
+//			Map<String, Integer> queryProfileSizes) {
+//		
+//		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
+//				// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
+//		
+//		//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
+//		formatData(scores, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
+//		double[] coefficients = regM();
+//		return calculateExpectScoresMap(coefficients);
+//	}
 	
 	//to keep the same identifiers, we include a map of the URI to the i index, or can consider just using a map for URI's to Y and another map for URI's to x.
 	// ^ Actually above will probably not work because API takes in arrays and that's extra work to convert the array
 	/**
 	 * Y columns and X columns must match identifiers (i's). 
-	 * @param scores
-	 * @param taxonProfileSizes
-	 * @param geneProfileSizes
+	 * @param comparisons
+	 * @param corpusProfileSizes
+	 * @param queryProfileSizes
 	 */
-	private void formatData(Collection<ComparisonScore<String>> scores, Map<String, Integer> taxonProfileSizes, Map<String, Integer> geneProfileSizes){
-		y = new double[scores.size()];
-		x = new double[scores.size()][numColumns];
-		System.out.println("x is a matrix of size " + scores.size() + "x" + (numColumns));
-		identifiers = new HashMap<String, Integer>();
+	private void formatData(Collection<ComparisonScore<ID>> comparisons, Map<ID, Integer> corpusProfileSizes, Map<ID, Integer> queryProfileSizes){
+		y = new double[comparisons.size()];
+		x = new double[comparisons.size()][numColumns];
+		System.out.println("x is a matrix of size " + comparisons.size() + "x" + (numColumns));
+		identifiers = new HashMap<ID, Integer>();
 		int i = 0;
-		for (ComparisonScore<String> s: scores){
+		for (ComparisonScore<ID> s: comparisons){
 			identifiers.put(s.id(), i);
 			// vectorize response variable
 			y[i] = s.similarity();
 			
 			// setup dependent variables
-			x[i][0] = Math.log(geneProfileSizes.get(s.queryProfile())); //TODO: remove magic values
-			x[i][1] = Math.log(taxonProfileSizes.get(s.corpusProfile()));
+			x[i][0] = Math.log(queryProfileSizes.get(s.queryProfile())); //TODO: remove magic values
+			x[i][1] = Math.log(corpusProfileSizes.get(s.corpusProfile()));
 			i++;
 		}
 		
@@ -116,12 +116,12 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		}
 	}
 	
-	private Map<String, Double> calculateExpectScoresMap(double[] coefficients){
+	private Map<ID, Double> calculateExpectScoresMap(double[] coefficients){
 		System.out.println("Calculating studentized residuals");
 		RealMatrix hatMatrix = regression.calculateHat();
 		double[] residuals = regression.estimateResiduals();
 		
-		Map<String, Double> expectScores = new HashMap<String, Double>();
+		Map<ID, Double> expectScores = new HashMap<ID, Double>();
 		
 		//order of coefficients?
 		double constant = coefficients[0];
@@ -141,7 +141,7 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		double sigma = regression.calculateResidualSumOfSquares() / y.length;
 		System.out.println("sigma " + sigma);
 		
-		for (String URI: identifiers.keySet()){
+		for (ID URI: identifiers.keySet()){
 			int index = identifiers.get(URI);
 			double[] xVector = x[index];
 			double yValue = y[index];
@@ -180,6 +180,24 @@ public class ExpectScoreComputer<String> implements ExpectScoreComputation<Strin
 		// result is calculated correctly, but lack of precision in R suggests a different answer. Lack of precision in python matches the unprecise R code.
 		// Using studres() in R gives a different result entirely
 	}
+
+	@Override
+	public Map<ID, Double> computeExpectScores(
+			Collection<ComparisonScore<ID>> comparisons,
+			Map<ID, Integer> corpusProfileSizes,
+			Map<ID, Integer> queryProfileSizes) {
+		// TODO Auto-generated method stub
+		
+		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
+		// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
+
+//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
+			formatData(comparisons, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
+			double[] coefficients = regM();
+			return calculateExpectScoresMap(coefficients);
+	
+	}
+
 	
 	/* For studentized residuals comparison purposes:
 	 	URI: http://purl.org/phenoscape/uuid/70dd3fa4-3cde-40f2-8ed6-799f92b17077
