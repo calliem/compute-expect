@@ -20,20 +20,22 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 	//TODO: probably make this one global
 //	private Collection<ComparisonScore<String>> scores;
 	
-//	@Override
-//	public Map<String, Double> computeExpectScores(
-//			Collection<ComparisonScore<String>> scores,
-//			Map<String, Integer> corpusProfileSizes,
-//			Map<String, Integer> queryProfileSizes) {
-//		
-//		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
-//				// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
-//		
-//		//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
-//		formatData(scores, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
-//		double[] coefficients = regM();
-//		return calculateExpectScoresMap(coefficients);
-//	}
+	@Override
+	public Map<ID, Double> computeExpectScores(
+			Collection<ComparisonScore<ID>> comparisons,
+			Map<ID, Integer> corpusProfileSizes,
+			Map<ID, Integer> queryProfileSizes) {
+		// TODO Auto-generated method stub
+		
+		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
+		// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
+
+			//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
+			formatData(comparisons, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
+			double[] coefficients = regM();
+			return calculateExpectScoresMap(coefficients);
+	
+	}
 	
 	//to keep the same identifiers, we include a map of the URI to the i index, or can consider just using a map for URI's to Y and another map for URI's to x.
 	// ^ Actually above will probably not work because API takes in arrays and that's extra work to convert the array
@@ -93,17 +95,18 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		System.out.println();
 		System.out.println("Doing Regression");
 		
-		
-		
-		regression = new OLSMultipleLinearRegression();		
+		regression = new OLSMultipleLinearRegression();
 		regression.newSampleData(y, x);
+		
 		// regression.
 		
 		
 		System.out.println(regression.isNoIntercept());
-		
+		System.out.println("calculating hat");
 		regression.calculateHat();
+		System.out.println("done calculating hat");
         double[] parameterEstimates = regression.estimateRegressionParameters();
+        System.out.println("done estimating regression parameters");
 		return parameterEstimates;
 	}
 	
@@ -170,33 +173,18 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 	}
 
 	private double studentize(double sigma, double rawResidual, double hii) {
-		System.out.println("Studentized Residual: " + rawResidual/(Math.sqrt(sigma * (1-hii))));
-		System.out.println("raw residual: " + rawResidual); // matches R
-		System.out.println("hii: " + hii);
-
-		System.out.println("more testing:");
-		System.out.println("denominator: " +  Math.sqrt((sigma) * (1-hii)));
+//		System.out.println("Studentized Residual: " + rawResidual/(Math.sqrt(sigma * (1-hii))));
+//		System.out.println("raw residual: " + rawResidual); // matches R
+//		System.out.println("hii: " + hii);
+//
+//		System.out.println("more testing:");
+//		System.out.println("denominator: " +  Math.sqrt((sigma) * (1-hii)));
 		return rawResidual/(Math.sqrt(sigma * (1-hii)));
 		// result is calculated correctly, but lack of precision in R suggests a different answer. Lack of precision in python matches the unprecise R code.
 		// Using studres() in R gives a different result entirely
 	}
 
-	@Override
-	public Map<ID, Double> computeExpectScores(
-			Collection<ComparisonScore<ID>> comparisons,
-			Map<ID, Integer> corpusProfileSizes,
-			Map<ID, Integer> queryProfileSizes) {
-		// TODO Auto-generated method stub
-		
-		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
-		// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
 
-			//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
-			formatData(comparisons, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
-			double[] coefficients = regM();
-			return calculateExpectScoresMap(coefficients);
-	
-	}
 
 	
 	/* For studentized residuals comparison purposes:
