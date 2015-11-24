@@ -60,19 +60,19 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			i++;
 		}
 		
-		System.out.println();
-		System.out.println("DATA");
-		System.out.println("-----------");
-		System.out.println("Y");
-		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file
-		for (Double yi: y){
-			System.out.print(yi + ",");
-		}
-		
-		System.out.println();
-		System.out.println("-----------");
-		System.out.println("X: genes \t\t taxons \t\t constant");
-		printDoubleArray(x);
+//		System.out.println();
+//		System.out.println("DATA");
+//		System.out.println("-----------");
+//		System.out.println("Y");
+//		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file
+//		for (Double yi: y){
+//			System.out.print(yi + ",");
+//		}
+//		
+//		System.out.println();
+//		System.out.println("-----------");
+//		System.out.println("X: genes \t\t taxons \t\t constant");
+//		printDoubleArray(x);
 		
 	}
 	
@@ -138,20 +138,20 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		}
 		System.out.println();
 		
-		double sigma = regression.calculateResidualSumOfSquares() / y.length;
-		System.out.println("sigma " + sigma);
-		
 		for (ID URI: identifiers.keySet()){
 			int index = identifiers.get(URI);
 			double[] xVector = x[index];
 			double yValue = y[index];
 			
 			System.out.println();
-			System.out.println("URI: " + URI);
-			
+		//	System.out.println("URI: " + URI);
+			//double sigma = (regression.calculateResidualSumOfSquares() - Math.pow(residuals[index],2)) / (y.length-3-1); // substract residuals
+			// calculating internal studentized residuals 
+			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
+//			System.out.println("sigma " + sigma);
 			double studentizedResidual = studentize(sigma, residuals[index], hatMatrix.getEntry(index, index));
 			double expectScore = computeExpect(studentizedResidual, numTaxa);
-			System.out.println("expectScore: " + expectScore);
+	//		System.out.println("expectScore: " + expectScore);
 			expectScores.put(URI, expectScore); //studentized residuals for now
 		}
 		
@@ -191,7 +191,7 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
 		// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
 
-//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
+			//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
 			formatData(comparisons, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
 			double[] coefficients = regM();
 			return calculateExpectScoresMap(coefficients);
@@ -201,9 +201,10 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 	
 	/* For studentized residuals comparison purposes:
 	 	URI: http://purl.org/phenoscape/uuid/70dd3fa4-3cde-40f2-8ed6-799f92b17077
-		Java: 0.6200053556932885
+		Java: 0.5591214336265494
 		Python: 0.571616694057
-		R: 0.55995704
+		R studres package: 0.55995704
+		R by hand: 0.5591214
 		
 		For expect score:
 		Java: 364.1178879169344
@@ -214,4 +215,7 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 	   Python: 348.311894559
 	   Java: 331.42292875911903
 	  */
+	
+	/* URI: */
+	
 }

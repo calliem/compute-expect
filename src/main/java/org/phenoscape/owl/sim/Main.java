@@ -1,8 +1,10 @@
 package org.phenoscape.owl.sim;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,9 +16,11 @@ public class Main {
 	private static final String absPath = new File("").getAbsolutePath();
 	private static final String resultsDir = "/data/results/";
 	private static final String scoresSizesPath = absPath + resultsDir
-			+ "Scores_Sizes_rand20.txt";
+			+ "Scores_Sizes.txt";
+			//+ "Scores_Sizes_rand20.txt";
 	private static final String scoresGeneTaxonPath = absPath + resultsDir
-			+ "Scores_Gene_Taxon_first5.txt";
+			+ "Scores_Gene_Taxon.txt";
+			//+ "Scores_Gene_Taxon_first5.txt";
 	private static final String profileSizesPath = absPath + resultsDir
 			+ "ProfileSizes.txt";
 
@@ -25,7 +29,7 @@ public class Main {
 	private static Map<String, Integer> corpusProfileSizes = new HashMap<String, Integer>();
 
 	public static void main(String[] args) {
-		// generateSGTfromScoresGeneTaxon(scoresGeneTaxonPath);
+		//generateSGTfromScoresGeneTaxon(scoresGeneTaxonPath);
 		// generateProfileSizesPath(profileSizesPath);
 
 		// For purposes of simplifying testing code, we instead build
@@ -39,8 +43,33 @@ public class Main {
 		// this is only a testing class that will not be run
 		Map<String, Double> expectScores = computeExpect.computeExpectScores(
 				scoreList, corpusProfileSizes, queryProfileSizes);
+		
+		// for testing purposes, write these to a textfile for comparison with python script
+		printResultsToTxt(expectScores);
 	}
+	
+	public static void printResultsToTxt(Map<String, Double> scores)
+	{
+		System.out.println("writing to txt file");
+		FileWriter fstream;
+	    BufferedWriter out;
 
+	    // create your filewriter and bufferedreader
+	    try {
+			fstream = new FileWriter("java_results.txt");
+			out = new BufferedWriter(fstream);
+			for (String URI: scores.keySet()){
+				out.write(URI + "\t,\t" + scores.get(URI) + "\n");
+			}
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	   System.out.println("Results done printing");
+	    
+	    
+	}
 	/**
 	 * Constructor that generates ScoreGeneTaxon objects from the inputted file
 	 * and returns a collection of them
@@ -60,8 +89,8 @@ public class Main {
 			int i = 0;
 			System.out.println("Reading " + filePath);
 			while (line != null) {
-				System.out.print(i + " ");
-				i++;
+				if (i % 100000 == 0) // total of 10703479 lines
+					System.out.println(i + " ");
 
 				// For use with score sizes file:
 				if (!line.contains("Score") && !line.contains("score")) { 
@@ -79,11 +108,13 @@ public class Main {
 				}
 
 				line = inputFile.readLine();
+				i++;
 			}
 			inputFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("done reading");
 	}
 
 	/**
@@ -91,7 +122,7 @@ public class Main {
 	 * 
 	 * @param filePath
 	 */
-	public static void generateSGTfromScoresGeneTaxon(String filePath) {
+/*	public static void generateSGTfromScoresGeneTaxon(String filePath) {
 		// Collection<ComparisonScore<String>> scores = new
 		// ArrayList<ComparisonScore<String>>();
 		try {
@@ -172,6 +203,6 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 }

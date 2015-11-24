@@ -52,6 +52,7 @@ fit
 
 library(MASS)
 studres(fit)
+stdres(fit)
 
 mse <- function(sm) { 
   mse <- mean(sm$residuals^2)
@@ -70,7 +71,8 @@ hii <- 0.15263686453386827
 rawResidual / sqrt(mse(sm) * sqrt(1-hii))
 sqrt(mse(sm) * sqrt(1-hii))
 rawResidual
-0.03272767784564373/ sqrt(0.0032882886615308235 * sqrt(1-0.15263686453386827))
+0.03272767784564373/ sqrt(0.004043417020840515 * (1-0.15263686453386827))
+
 
 # R technically loses precision compared to Java. The 
 # 0.03272768/0.05501769 = 0.5948574
