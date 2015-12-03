@@ -21,7 +21,6 @@ public class Reformatter {
 	    	curInput = scanner.nextLine();
 	    }
 	    
-	    
 	    String[] splitInput = input.split("\t");
 	    String x1 = ""; 
 	    String x2 = "";
@@ -48,12 +47,6 @@ public class Reformatter {
 	    System.out.println(x2);
 	    System.out.println();
 	    System.out.println(x1Java);
-	    
-
-	    //System.out.println(input);
-//	    System.out.println(lol.length);
-//	    for (int i = 0; i < lol.length; i++)
-//	    	System.out.println("l" + lol[i]);
 	}
 	
 }

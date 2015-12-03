@@ -10,14 +10,13 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> { 
-	//template the String to a generic object
 	
 	private static final int numColumns = 3;
 	private OLSMultipleLinearRegression regression;
 	private double[] y;
 	private double[][] x;
 	private Map<ID, Integer> identifiers;
-	private static final int numTaxa = 659;
+	//private static final int numTaxa = 659;
 	
 	//TODO: probably make this one global
 //	private Collection<ComparisonScore<String>> scores;
@@ -27,15 +26,14 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			Collection<ComparisonScore<ID>> comparisons,
 			Map<ID, Integer> corpusProfileSizes,
 			Map<ID, Integer> queryProfileSizes) {
-		// TODO Auto-generated method stub
-		
-		//Map<String, Double> studentizedResiduals = computeStudentizedResiduals(coefficients); //TODO: use uib.basecode.math.
-		// int numTaxa = queryProfileSizes.size(); // TODO: database size (should this be passed in somewhere or parsed?)
 
+		    int numTaxa = corpusProfileSizes.size(); 
+		    System.out.println("numTaxa " + numTaxa); //check this before moving on
+		
 			//this.scores = scores; //TODO: if use this as a global, remove this from the parameters that are passed around
 			formatData(comparisons, corpusProfileSizes, queryProfileSizes); //TODO: pass back a RegressionData object and pass that into parameters below
 			double[] coefficients = regM();
-			return calculateExpectScoresMap(coefficients);
+			return calculateExpectScoresMap(coefficients, numTaxa);
 	
 	}
 	
@@ -86,19 +84,6 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		
 	}
 	
-//	private Map<String, Double> computeExpect(Map<String, Double> studentizedResiduals, int numTaxa) {
-//		Map<String, Double> expectScore = new HashMap<String, Double>();
-//		
-//		for (String ID : studentizedResiduals.keySet()){
-//			double studRes = studentizedResiduals.get(ID);
-//			double pValue = 1 - Math.exp(-1 * Math.exp(-1 * studRes * Math.PI / Math.sqrt(6) + 0.5772156649));
-//			double expect = pValue * numTaxa;
-//			expectScore.put(ID, expect);
-//		}
-//				
-//		return expectScore; 
-//	};
-	
 	private double[] regM (){
 		System.out.println();
 		System.out.println("Doing Regression");
@@ -107,16 +92,6 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		regression.setNoIntercept(true);
 		regression.newSampleData(y, x);
 		
-		// regression.
-		
-		
-		
-		
-		
-		System.out.println(regression.isNoIntercept());
-		System.out.println("calculating hat");
-		regression.calculateHat();
-		System.out.println("done calculating hat");
         double[] parameterEstimates = regression.estimateRegressionParameters();
         System.out.println("done estimating regression parameters");
 		return parameterEstimates;
@@ -131,18 +106,18 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 //		}
 //	}
 	
-	private Map<ID, Double> calculateExpectScoresMap(double[] coefficients){
+	private Map<ID, Double> calculateExpectScoresMap(double[] coefficients, int numTaxa){
 		System.out.println("Calculating studentized residuals");
-		RealMatrix hatMatrix = regression.calculateHat();
+		//RealMatrix hatMatrix = regression.calculateHat();
 		double[] residuals = regression.estimateResiduals();
 		
 		Map<ID, Double> expectScores = new HashMap<ID, Double>();
 		
 		//order of coefficients?
-		double constant = coefficients[0];
-		double geneCoeff = coefficients[1];
-		double taxonCoeff = coefficients[2];
-		
+//		double constant = coefficients[0];
+//		double geneCoeff = coefficients[1];
+//		double taxonCoeff = coefficients[2];
+//		
 		System.out.println();
 		System.out.println("RESULTS");
 		System.out.println("-----------");
@@ -154,48 +129,25 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		//System.out.println();
 		
 		RealMatrix xMatrix = new Array2DRowRealMatrix(x);
-	//	System.out.println("xMatrix");
-	//	System.out.println(xMatrix);
 		RealMatrix xMatrixSquared = xMatrix.transpose().multiply(xMatrix);
-	//	System.out.println("xMatrixSquared");
-//		System.out.println(xMatrixSquared);
 		RealMatrix xMatrixSquaredInverse = new LUDecomposition(xMatrixSquared).getSolver().getInverse();
-	//	System.out.println("xMatrixSquaredInverse");
-	//	System.out.println(xMatrixSquaredInverse);
 		
 		for (ID URI: identifiers.keySet()){
 			int index = identifiers.get(URI);
-			double[] xVector = x[index];
-			double yValue = y[index];
-			
-	//		System.out.println();
-		//	System.out.println("URI: " + URI);
-			//double sigma = (regression.calculateResidualSumOfSquares() - Math.pow(residuals[index],2)) / (y.length-3-1); // substract residuals
-			// calculating internal studentized residuals 
 			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
-//			System.out.println("sigma " + sigma);
-			
-			// calculate hii
-			//System.out.println("Matrix printing");
-			RealMatrix firstHalf = xMatrix.getRowMatrix(index).multiply(xMatrixSquaredInverse);
-			RealMatrix hiiAsMatrix = firstHalf.multiply(xMatrix.transpose());
-		//	System.out.println(hiiAsMatrix);
-			double hii = hiiAsMatrix.getEntry(0, 0);
-			//System.out.println(index + " : " + hii);
-			
-			double studentizedResidual = studentize(sigma, residuals[index], hii); //hatMatrix.getEntry(index, index));
+			double hii = calculateHii(xMatrix, xMatrixSquaredInverse, index);
+
+			double studentizedResidual = studentize(sigma, residuals[index], hii);
 			double expectScore = computeExpect(studentizedResidual, numTaxa);
-	//		System.out.println("expectScore: " + expectScore);
-			expectScores.put(URI, expectScore); //studentized residuals for now
+			expectScores.put(URI, expectScore);
 		}
-		
 		return expectScores;
-		
-		
-		
-		//predicted = 
-		//rawResidual = 
-		//hatMatrix.getEntry(i, j);
+	}
+	
+	private double calculateHii(RealMatrix xMatrix, RealMatrix xMatrixSquaredInverse, int index){
+		RealMatrix firstHalf = xMatrix.getRowMatrix(index).multiply(xMatrixSquaredInverse);
+		RealMatrix hiiAsMatrix = firstHalf.multiply(xMatrix.transpose());
+		return hiiAsMatrix.getEntry(0, 0);
 	}
 	
 	private double computeExpect(double studRes, int databaseSize){
@@ -204,38 +156,6 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 	}
 
 	private double studentize(double sigma, double rawResidual, double hii) {
-//		System.out.println("Studentized Residual: " + rawResidual/(Math.sqrt(sigma * (1-hii))));
-//		System.out.println("raw residual: " + rawResidual); // matches R
-//		System.out.println("hii: " + hii);
-//
-//		System.out.println("more testing:");
-//		System.out.println("denominator: " +  Math.sqrt((sigma) * (1-hii)));
 		return rawResidual/(Math.sqrt(sigma * (1-hii)));
-		// result is calculated correctly, but lack of precision in R suggests a different answer. Lack of precision in python matches the unprecise R code.
-		// Using studres() in R gives a different result entirely
-	}
-
-
-
-	
-	/* For studentized residuals comparison purposes:
-	 	URI: http://purl.org/phenoscape/uuid/70dd3fa4-3cde-40f2-8ed6-799f92b17077
-		Java: 0.5591214336265494
-		Python: 0.571616694057
-		R studres package: 0.55995704
-		R by hand: 0.5591214
-		
-		For expect score:
-		Java: 364.1178879169344
-		Python: 378.916326656
-	*/
-	
-	/* URI: http://purl.org/phenoscape/uuid/b5b8de28-aaa2-466a-9809-dd8754f52565
-	   Python: 348.311894559
-	   Java: 331.42292875911903
-	  */
-	
-	/* URI: */
-	
-	
+	}	
 }
