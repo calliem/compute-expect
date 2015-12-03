@@ -41,14 +41,68 @@ summary(fit)
 fit
 
 
-# new test with randomized datapoints to compare with Java Results
+# new test with randomized datapoints to compare with Java Results. these variables have alraedy been logged
 x1.random <- c(2.6390573296152584,1.0986122886681098,2.772588722239781,3.295836866004329,0.6931471805599453,3.6109179126442243,1.6094379124341003,2.1972245773362196,3.4011973816621555,1.791759469228055,3.332204510175204,1.6094379124341003,1.3862943611198906,1.6094379124341003,1.0986122886681098,1.3862943611198906,2.6390573296152584,2.4849066497880004,0.6931471805599453,0.6931471805599453)
 x2.random <- c(7.272398392570047,2.3978952727983707,2.5649493574615367,2.772588722239781,2.0794415416798357,0.0,2.8903717578961645,3.9318256327243257,3.091042453358316,1.791759469228055,4.762173934797756,1.9459101490553132,2.0794415416798357,3.4657359027997265,4.174387269895637,2.302585092994046,5.429345628954441,3.5263605246161616,2.0794415416798357,4.48863636973214)
 y.random <- c(0.5103698665557886,0.06258533725369518,0.12715494426192991,0.18706485014751498,0.0,0.01391734794802006,0.10378078359964121,0.07500496128175987,0.10775878416808246,0.0617105556277457,0.25735836074637314,0.061885035916330794,0.06118790337413626,0.061885035916330794,0.03618242116277272,0.061885035916330794,0.23009934914025962,0.1115991899083132,0.030942517958165397,0.0195936510734699)
 
+# verify hat calculation
+design.matrix <- matrix(1, nrow = length(x1.random), ncol=3)
+design.matrix[,2] <- x1.random
+design.matrix[,3] <- x2.random
+design.matrix
+
+hat.matrix <- design.matrix %*% solve(t(design.matrix) %*% design.matrix) %*% t(design.matrix)
+hatvalues(fit)
+hat.matrix[1,1]
+hat.matrix[2,2]
+
+# calculating with less data
+
+design.squared <- solve(t(design.matrix) %*% design.matrix)
+design.squared
+
+design.matrix[1,] %*% design.squared[,1] %*% design.matrix[1,]
+#3x1 1x3 3x1
+
+
+
 fit <- lm(y.random ~ x1.random + x2.random)
 sm <- summary(fit)
 fit
+hatvalues(fit)
+lev <- hat(model.matrix(fit))
+
+# try to calculate multivariate regression hat diagonal leverage values:
+
+
+
+
+
+hatvalues
+maethods(hatvalues)
+getAnywhere('hatvalues')
+stats:::hatvalues.lm
+
+
+
+
+
+
+
+
+y.simple <- c(0.5103698665557886,0.06258533725369518,0.12715494426192991)
+x1.simple <- c(2.6390573296152584, 1.0986122886681098,2.772588722239781)
+x2.simple <- c(7.272398392570047,2.3978952727983707,2.5649493574615367)
+
+fit.simple <- lm(y.simple ~ x1.simple + x2.simple)
+fit.simple
+lev.simple <- hatvalues(fit.simple)
+lev.simple
+lev.simple <- hat(model.matrix(fit.simple))
+lev.simple
+
+
 
 library(MASS)
 studres(fit)
@@ -72,6 +126,7 @@ rawResidual / sqrt(mse(sm) * sqrt(1-hii))
 sqrt(mse(sm) * sqrt(1-hii))
 rawResidual
 0.03272767784564373/ sqrt(0.004043417020840515 * (1-0.15263686453386827))
+
 
 
 # R technically loses precision compared to Java. The 

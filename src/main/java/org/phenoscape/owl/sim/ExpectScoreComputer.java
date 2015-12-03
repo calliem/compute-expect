@@ -4,13 +4,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> { 
 	//template the String to a generic object
 	
-	private static final int numColumns = 2;
+	private static final int numColumns = 3;
 	private OLSMultipleLinearRegression regression;
 	private double[] y;
 	private double[][] x;
@@ -57,9 +59,15 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			y[i] = s.similarity();
 			
 			// setup dependent variables
-			x[i][0] = Math.log(queryProfileSizes.get(s.queryProfile())); //TODO: remove magic values
-			x[i][1] = Math.log(corpusProfileSizes.get(s.corpusProfile()));
+			x[i][0] = 1;
+			x[i][1] = Math.log(queryProfileSizes.get(s.queryProfile())); //TODO: remove magic values
+			x[i][2] = Math.log(corpusProfileSizes.get(s.corpusProfile()));
+			
 			i++;
+			
+			/*-0.15852367904452747
+			0.05047672528746634
+			0.052837912126559035*/
 		}
 		
 //		System.out.println();
@@ -74,7 +82,7 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 //		System.out.println();
 //		System.out.println("-----------");
 //		System.out.println("X: genes \t\t taxons \t\t constant");
-//		printDoubleArray(x);
+		//printDoubleArray(x);
 		
 	}
 	
@@ -96,9 +104,13 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		System.out.println("Doing Regression");
 		
 		regression = new OLSMultipleLinearRegression();
+		regression.setNoIntercept(true);
 		regression.newSampleData(y, x);
 		
 		// regression.
+		
+		
+		
 		
 		
 		System.out.println(regression.isNoIntercept());
@@ -110,14 +122,14 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		return parameterEstimates;
 	}
 	
-	private void printDoubleArray(double[][] test){
-		for (int i = 0; i<test.length; i++){
-		    for (int j = 0; j<test[i].length; j++){
-		        System.out.print(test[i][j] + "\t");
-		    }
-		    System.out.println();
-		}
-	}
+//	private void printDoubleArray(double[][] test){
+//		for (int i = 0; i<test.length; i++){
+//		    for (int j = 0; j<test[i].length; j++){
+//		        System.out.print(test[i][j] + "\t");
+//		    }
+//		    System.out.println();
+//		}
+//	}
 	
 	private Map<ID, Double> calculateExpectScoresMap(double[] coefficients){
 		System.out.println("Calculating studentized residuals");
@@ -139,20 +151,39 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		for (int i = 0; i < coefficients.length; i++){
 			System.out.println(coefficients[i]);
 		}
-		System.out.println();
+		//System.out.println();
+		
+		RealMatrix xMatrix = new Array2DRowRealMatrix(x);
+	//	System.out.println("xMatrix");
+	//	System.out.println(xMatrix);
+		RealMatrix xMatrixSquared = xMatrix.transpose().multiply(xMatrix);
+	//	System.out.println("xMatrixSquared");
+//		System.out.println(xMatrixSquared);
+		RealMatrix xMatrixSquaredInverse = new LUDecomposition(xMatrixSquared).getSolver().getInverse();
+	//	System.out.println("xMatrixSquaredInverse");
+	//	System.out.println(xMatrixSquaredInverse);
 		
 		for (ID URI: identifiers.keySet()){
 			int index = identifiers.get(URI);
 			double[] xVector = x[index];
 			double yValue = y[index];
 			
-			System.out.println();
+	//		System.out.println();
 		//	System.out.println("URI: " + URI);
 			//double sigma = (regression.calculateResidualSumOfSquares() - Math.pow(residuals[index],2)) / (y.length-3-1); // substract residuals
 			// calculating internal studentized residuals 
 			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
 //			System.out.println("sigma " + sigma);
-			double studentizedResidual = studentize(sigma, residuals[index], hatMatrix.getEntry(index, index));
+			
+			// calculate hii
+			//System.out.println("Matrix printing");
+			RealMatrix firstHalf = xMatrix.getRowMatrix(index).multiply(xMatrixSquaredInverse);
+			RealMatrix hiiAsMatrix = firstHalf.multiply(xMatrix.transpose());
+		//	System.out.println(hiiAsMatrix);
+			double hii = hiiAsMatrix.getEntry(0, 0);
+			//System.out.println(index + " : " + hii);
+			
+			double studentizedResidual = studentize(sigma, residuals[index], hii); //hatMatrix.getEntry(index, index));
 			double expectScore = computeExpect(studentizedResidual, numTaxa);
 	//		System.out.println("expectScore: " + expectScore);
 			expectScores.put(URI, expectScore); //studentized residuals for now
@@ -205,5 +236,6 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 	  */
 	
 	/* URI: */
+	
 	
 }
