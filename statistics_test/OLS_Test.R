@@ -165,7 +165,13 @@ design.squared <- solve(t(design.matrix) %*% design.matrix)
 design.squared
 
 term <- 2
-design.matrix[term,] %*% design.squared %*% design.matrix[term,]
+hatDiag <- NA
+for (term in 1:nrow(design.matrix)){
+  if (term %% 10000 == 0){
+    print(term)
+  }
+  hatDiag[term] <- design.matrix[term,] %*% design.squared %*% design.matrix[term,]
+}
 
 
 # R technically loses precision compared to Java. The 
