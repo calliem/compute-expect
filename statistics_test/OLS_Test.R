@@ -137,7 +137,8 @@ rawResidual
 0.03272767784564373/ sqrt(0.004043417020840515 * (1-0.15263686453386827))
 
 
-data_RInput <- read.csv("~/Documents/Phenoscape/data/results/data_RInput", header=FALSE)
+#data_RInput <- read.csv("~/Documents/Phenoscape/data/results/data_RInput", header=FALSE)
+data_RInput <- read.csv("~/Projects/compute-expect/data/results/data_RInput", header=FALSE)
 
 
 # verify hat calculation
@@ -153,7 +154,7 @@ term <- 2
 design.matrix[term,] %*% design.squared %*% design.matrix[term,]
 
 
-
+# malloc error when trying to calculate with everything 
 
 hat.matrix <- design.matrix %*% solve(t(design.matrix) %*% design.matrix) %*% t(design.matrix)
 hatvalues(fit)
@@ -164,7 +165,6 @@ hatvalues(fit)
 design.squared <- solve(t(design.matrix) %*% design.matrix)
 design.squared
 
-term <- 2
 hatDiag <- NA
 for (term in 1:nrow(design.matrix)){
   if (term %% 10000 == 0){

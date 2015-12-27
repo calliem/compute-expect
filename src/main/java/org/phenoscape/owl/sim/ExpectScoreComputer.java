@@ -103,14 +103,36 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		RealMatrix xMatrixSquared = xMatrix.transpose().multiply(xMatrix);
 		RealMatrix xMatrixSquaredInverse = new LUDecomposition(xMatrixSquared).getSolver().getInverse();
 		
+		System.out.println("matrices calculated");
+		
+		int i = 0;
 		for (ID URI: identifiers.keySet()){
+			
 			int index = identifiers.get(URI);
+			long startTime = 0;
+			if (i < 100)
+				startTime = System.currentTimeMillis();
 			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
+			
+			long time2 = System.currentTimeMillis();
 			double hii = calculateHii(xMatrix, xMatrixSquaredInverse, index);
+			long time3 = System.currentTimeMillis();
+			System.out.println("calculate Hii " + (time3 - time2));
 
+			long time4 = System.currentTimeMillis();
 			double studentizedResidual = studentize(sigma, residuals[index], hii);
+			long time5 = System.currentTimeMillis();
+			System.out.println("calculate stud res " + (time5 - time4));
+			
+			long time6 = System.currentTimeMillis();
 			double expectScore = computeExpect(studentizedResidual, numTaxa);
+			long time7 = System.currentTimeMillis();
+			System.out.println("calculate expect " + (time7 - time6));
+			
 			expectScores.put(URI, expectScore);
+			if (i < 100)
+				System.out.println("full expect score calculation: " + (System.currentTimeMillis() - startTime));
+			i++;
 		}
 		return expectScores;
 	}
