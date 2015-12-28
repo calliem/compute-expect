@@ -55,19 +55,19 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			i++;
 		}
 		
-//		System.out.println();
-//		System.out.println("DATA");
-//		System.out.println("-----------");
-//		System.out.println("Y");
-//		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file
-//		for (Double yi: y){
-//			System.out.print(yi + ",");
-//		}
-//		
-//		System.out.println();
-//		System.out.println("-----------");
-//		System.out.println("X: genes \t\t taxons \t\t constant");
-		//printDoubleArray(x);
+		System.out.println();
+		System.out.println("DATA");
+		System.out.println("-----------");
+		System.out.println("Y");
+		System.out.println("Y.length = " + y.length); // truncated from the shorter scores_genes_taxon file
+		for (Double yi: y){
+			System.out.print(yi + ",");
+		}
+		
+		System.out.println();
+		System.out.println("-----------");
+		System.out.println("X: genes \t\t taxons \t\t constant");
+		printDoubleArray(x);
 		
 	}
 	
@@ -130,6 +130,7 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			System.out.println("calculate expect " + (time7 - time6));
 			
 			expectScores.put(URI, expectScore);
+			System.out.println(URI + " " + hii);
 			if (i < 100)
 				System.out.println("full expect score calculation: " + (System.currentTimeMillis() - startTime));
 			i++;
@@ -137,9 +138,12 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		return expectScores;
 	}
 	
+	
 	private double calculateHii(RealMatrix xMatrix, RealMatrix xMatrixSquaredInverse, int index){
+		//1x3 * 3x3 
 		RealMatrix firstHalf = xMatrix.getRowMatrix(index).multiply(xMatrixSquaredInverse);
-		RealMatrix hiiAsMatrix = firstHalf.multiply(xMatrix.transpose());
+		// 1x3 * 3x100000
+		RealMatrix hiiAsMatrix = firstHalf.multiply((xMatrix.getRowMatrix(index)).transpose());
 		return hiiAsMatrix.getEntry(0, 0);
 	}
 	
@@ -152,12 +156,12 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		return rawResidual/(Math.sqrt(sigma * (1-hii)));
 	}	
 	
-//	private void printDoubleArray(double[][] test){
-//	for (int i = 0; i<test.length; i++){
-//	    for (int j = 0; j<test[i].length; j++){
-//	        System.out.print(test[i][j] + "\t");
-//	    }
-//	    System.out.println();
-//	}
-//}
+	private void printDoubleArray(double[][] test){
+	for (int i = 0; i<test.length; i++){
+	    for (int j = 0; j<test[i].length; j++){
+	        System.out.print(test[i][j] + "\t");
+	    }
+	    System.out.println();
+	}
+}
 }
