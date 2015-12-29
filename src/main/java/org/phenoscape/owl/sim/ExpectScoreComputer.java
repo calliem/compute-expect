@@ -32,7 +32,7 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		    int numTaxa = corpusProfileSizes.size(); 
 			formatData(comparisons, corpusProfileSizes, queryProfileSizes);
 			double[] coefficients = regM();
-			return calculateExpectScoresMapColt(coefficients, numTaxa);
+			return calculateExpectScoresMap(coefficients, numTaxa);
 	}
 
 	/**
@@ -112,41 +112,48 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		
 		System.out.println("matrices calculated");
 		
+		double rss = regression.calculateResidualSumOfSquares();
+		double sigma = (rss) / (y.length-3);
+		
 		int i = 0;
+		long startTime = System.currentTimeMillis();;
 		for (ID URI: identifiers.keySet()){
-			
 			int index = identifiers.get(URI);
-			long startTime = 0;
-			if (i < 100)
-				startTime = System.currentTimeMillis();
-			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
+			if (i % 100000 == 0){
+				long time2 = System.currentTimeMillis();
+				System.out.println(i + " " + (time2-startTime));
+			}
+			//192 ms for 10,000
+				
+			//System.out.println("RSS " + rss);
+			//System.out.println(sigma);;
+//			long time2 = System.currentTimeMillis();
+//			System.out.println("calulate sigma (residual sum of squares) " + (time2 - startTime));
 			
-			long time2 = System.currentTimeMillis();
 			double hii = calculateHii(xMatrix, xMatrixSquaredInverse, index);
-			long time3 = System.currentTimeMillis();
-			System.out.println("calculate Hii " + (time3 - time2));
+//			long time3 = System.currentTimeMillis();
+//			System.out.println("calculate Hii " + (time3 - time2));
 
-			long time4 = System.currentTimeMillis();
+//			long time4 = System.currentTimeMillis();
 			double studentizedResidual = studentize(sigma, residuals[index], hii);
-			long time5 = System.currentTimeMillis();
-			System.out.println("calculate stud res " + (time5 - time4));
+//			long time5 = System.currentTimeMillis();
+//			System.out.println("calculate stud res " + (time5 - time4));
 			
-			long time6 = System.currentTimeMillis();
+//			long time6 = System.currentTimeMillis();
 			double expectScore = computeExpect(studentizedResidual, numTaxa);
-			long time7 = System.currentTimeMillis();
-			System.out.println("calculate expect " + (time7 - time6));
+//			long time7 = System.currentTimeMillis();
+//			System.out.println("calculate expect " + (time7 - time6));
 			
 			expectScores.put(URI, expectScore);
-			System.out.println(URI + " " + hii + " " + x[index][1] + " " + x[index][2]);
-			if (i < 100)
-				System.out.println("full expect score calculation: " + (System.currentTimeMillis() - startTime));
+//			System.out.println(URI + " " + hii + " " + x[index][1] + " " + x[index][2]);
 			i++;
 		}
 		return expectScores;
 	}
 	
 	// MTJ: For testing purposes
-	private Map<ID, Double> calculateExpectScoresMTJandEMTJ(double[] coefficients, int numTaxa){
+	// For future testing: consider EMTJ for small matrix math calculations
+	private Map<ID, Double> calculateExpectScoresMTJ(double[] coefficients, int numTaxa){
 		System.out.println("Calculating studentized residuals");
 		double[] residuals = regression.estimateResiduals();
 		
@@ -161,13 +168,22 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		}
 		
 		// calculates just the diagonal portion of the matrix
-		DenseMatrix xMatrix = new DenseMatrix(x);
+		/*DenseMatrix xMatrix = new DenseMatrix(x);
 		//RealMatrix xMatrix = new Array2DRowRealMatrix(x);
 		DenseMatrix xMatrixSquared = new DenseMatrix(x.length, x.length);
-		xMatrix.transAmult(xMatrix, xMatrixSquared);
+		xMatrix.transAmult(xMatrix, xMatrixSquared);*/
 		//DoubleMatrix2D xMatrixSquaredInverse = linAlg.inverse(xMatrixSquared);
 		//xMatrixSquared.inverse();
 		
+		// No direct inverse matrix calculation in MTJ, so to preserve efficiency Apache Commons Math is used
+		// The resulting 3x3 matrix will be converted back into a DenseMatrix
+		RealMatrix xMatrix = new Array2DRowRealMatrix(x);
+		RealMatrix xMatrixSquared = xMatrix.transpose().multiply(xMatrix);
+		RealMatrix xMatrixSquaredInverse = new LUDecomposition(xMatrixSquared).getSolver().getInverse();
+		
+		double[][] xSquaredInverseArray = xMatrixSquaredInverse.getData();
+		DenseMatrix xMat = new DenseMatrix(x);
+		DenseMatrix xSquaredInverse = new DenseMatrix(xSquaredInverseArray);
 		
 		//RealMatrix xMatrixSquared = xMatrix.transpose().multiply(xMatrix);
 		//RealMatrix xMatrixSquaredInverse = new LUDecomposition(xMatrixSquared).getSolver().getInverse();
@@ -182,9 +198,10 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			if (i < 100)
 				startTime = System.currentTimeMillis();
 			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
-			
 			long time2 = System.currentTimeMillis();
-			double hii = calculateHii(xMatrix, xMatrixSquaredInverse, index);
+			System.out.println("calulate sigma (residual sum of squares) " + (time2 - startTime));
+			
+			double hii = calculateHiiMTJ(xMat, xSquaredInverse, index);
 			long time3 = System.currentTimeMillis();
 			System.out.println("calculate Hii " + (time3 - time2));
 
@@ -243,8 +260,9 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			if (i < 100)
 				startTime = System.currentTimeMillis();
 			double sigma = (regression.calculateResidualSumOfSquares()) / (y.length-3);
-			
 			long time2 = System.currentTimeMillis();
+			System.out.println("calulate sigma (residual sum of squares) " + (time2 - startTime));
+			
 			double hii = calculateHiiColt(xMatrix, xMatrixSquaredInverse, index);
 			long time3 = System.currentTimeMillis();
 			System.out.println("calculate Hii " + (time3 - time2));
@@ -266,6 +284,29 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			i++;
 		}
 		return expectScores;
+	}
+	
+	private double calculateHiiMTJ(DenseMatrix xMatrix, DenseMatrix xMatrixSquaredInverse, int index){
+		//1x3 * 3x3 = 1x3
+		DenseMatrix firstHalf = new DenseMatrix(1, x[0].length);
+		
+		double[][] tempMatrix = new double[1][x[index].length];
+		tempMatrix[0] = x[index];
+		
+		double[][] tempTransposed = new double[x[index].length][1];
+		tempTransposed[0][0] = x[index][0];
+		tempTransposed[1][0] = x[index][1];
+		tempTransposed[2][0] = x[index][2];
+		
+		DenseMatrix row = new DenseMatrix(tempMatrix); //xMatrix.getRowMatrix(index)
+		DenseMatrix rowTransposed = new DenseMatrix(tempTransposed);
+		
+		row.mult(xMatrixSquaredInverse, firstHalf);
+		//RealMatrix firstHalf = xMatrix.getRowMatrix(index).multiply(xMatrixSquaredInverse);
+		// 1x3 * 3x100000
+		DenseMatrix hii = new DenseMatrix(1,1);
+		firstHalf.mult(rowTransposed, hii); // firsthalf is 1x3 and rowTransposed is 3x1
+		return hii.get(0,0);
 	}
 	
 	private double calculateHiiColt(DoubleMatrix2D xMatrix, DoubleMatrix2D xMatrixSquaredInverse, int index){
