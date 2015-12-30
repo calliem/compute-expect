@@ -3,7 +3,6 @@ package org.phenoscape.owl.sim;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -12,7 +11,7 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> { 
 	
 	private static final int numColumns = 3;
-	private OLSMultipleLinearRegression regression;
+	
 	private double[] y;
 	private double[][] x;
 	private Map<ID, Integer> identifiers;
@@ -24,8 +23,9 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 			Map<ID, Integer> queryProfileSizes) {
 		    int numTaxa = corpusProfileSizes.size(); 
 			formatData(comparisons, corpusProfileSizes, queryProfileSizes);
-			double[] coefficients = regM();
-			return calculateExpectScoresMap(coefficients, numTaxa);
+			OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
+			double[] coefficients = regM(regression);
+			return calculateExpectScoresMap(regression, coefficients, numTaxa);
 	}
 
 	/**
@@ -53,15 +53,14 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		}
 	}
 	
-	private double[] regM (){
-		regression = new OLSMultipleLinearRegression();
+	private double[] regM (OLSMultipleLinearRegression regression){
 		regression.setNoIntercept(true);
 		regression.newSampleData(y, x);
         double[] parameterEstimates = regression.estimateRegressionParameters();
 		return parameterEstimates;
 	}
 	
-	private Map<ID, Double> calculateExpectScoresMap(double[] coefficients, int numTaxa){
+	private Map<ID, Double> calculateExpectScoresMap(OLSMultipleLinearRegression regression, double[] coefficients, int numTaxa){
 		double[] residuals = regression.estimateResiduals();
 		Map<ID, Double> expectScores = new HashMap<ID, Double>();
 		
