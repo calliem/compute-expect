@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 
 /**
- * Reformats data printed out from the ExpectScoreComputer a statement that can be copied directly into R
+ * Reformats data printed out from the ExpectScoreComputer and outputs a vector that can be copied directly into R
  * @author Callie Mao
  *
  */

@@ -2,8 +2,8 @@ package org.phenoscape.owl.sim;
 
 /**
  * Temporary ComparisonScore implementation for testing purposes. This object 
- * will essentially hold all important information from an individual row of the 
- * scores_gene_taxon.tsv file
+ * holds all relevant information from an individual row of the 
+ * scores_gene_taxon.tsv file that is necessary for expect score computation
  * @author Callie Mao
  *
  */
