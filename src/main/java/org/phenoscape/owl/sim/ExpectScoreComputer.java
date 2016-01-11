@@ -24,16 +24,16 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		    int numTaxa = corpusProfileSizes.size(); 
 			formatData(comparisons, corpusProfileSizes, queryProfileSizes);
 			OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
-			double[] coefficients = regM(regression);
-			return calculateExpectScoresMap(regression, coefficients, numTaxa);
+			regM(regression);
+			return calculateExpectScoresMap(regression, numTaxa);
 	}
 
 	/**
-	 * Takes inputted comparison, corpusProfileSizes, and queryProfileSizes collections and reformats them into 
-	 * global arrays for both the response variable (1-D array) and the independent variables (array with 3 columns).
-	 * The array for the response variable contains an additional column of one's to represent the intercept. 
-	 * Response and independent variables both occupy the same rows index within their respective array, and this index
-	 * is stored within the identifiers variable (for later lookup). 
+	 * Reformats comparison, corpusProfileSizes, and queryProfileSizes collections into global
+	 * arrays for both the response variable (nx1 matrix) and the independent variables (nx3 matrix).
+	 * The array for the response variable contains an additional column of 1's representing the intercept. 
+	 * Response and independent variables both occupy the same row index within their respective array, and this index
+	 * is stored within the identifiers variable for later lookup. 
 	 * @param comparisons
 	 * @param corpusProfileSizes
 	 * @param queryProfileSizes
@@ -53,6 +53,11 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		}
 	}
 	
+	/**
+	 * Performs ordinary least squares multiple linear regression and returns the parameter estimates
+	 * @param regression
+	 * @return parameterEstimates
+	 */
 	private double[] regM (OLSMultipleLinearRegression regression){
 		regression.setNoIntercept(true);
 		regression.newSampleData(y, x);
@@ -60,11 +65,10 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		return parameterEstimates;
 	}
 	
-	private Map<ID, Double> calculateExpectScoresMap(OLSMultipleLinearRegression regression, double[] coefficients, int numTaxa){
+	private Map<ID, Double> calculateExpectScoresMap(OLSMultipleLinearRegression regression, int numTaxa){
 		double[] residuals = regression.estimateResiduals();
 		Map<ID, Double> expectScores = new HashMap<ID, Double>();
 		
-		// calculates just the diagonal portion of the matrix
 		RealMatrix xMatrix = new Array2DRowRealMatrix(x);
 		RealMatrix xMatrixSquared = xMatrix.transpose().multiply(xMatrix);
 		RealMatrix xMatrixSquaredInverse = new LUDecomposition(xMatrixSquared).getSolver().getInverse();
