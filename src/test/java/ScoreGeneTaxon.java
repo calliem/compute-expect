@@ -1,4 +1,4 @@
-package org.phenoscape.owl.sim;
+import org.phenoscape.owl.sim.ComparisonScore;
 
 /**
  * Temporary ComparisonScore implementation for testing purposes. This object 

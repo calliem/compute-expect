@@ -1,0 +1,21 @@
+Gene ID	Gene Name	Taxon ID	Taxon Name	Overall Similarity	Expect Value
+http://www.ncbi.nlm.nih.gov/gene/3858	KRT10	VTO_0034991	Siluriformes	0.51	19.2586323166
+http://zfin.org/ZDB-GENE-070117-344	unm_m742	VTO_0052581	Psednos	0.06	351.559518728
+http://www.informatics.jax.org/marker/MGI:1932466	Klb	VTO_0052585	Paraliparis	0.13	500.944062202
+http://www.informatics.jax.org/marker/MGI:95553	Flg	VTO_0041431	Hypentelium	0.19	378.916326656
+http://zfin.org/ZDB-GENE-070209-53	etv7	VTO_0007160	Incilius	0.0	481.060996632
+http://www.ncbi.nlm.nih.gov/gene/3209	HOXA13	VTO_0062285	Orthrias	0.01	595.618656162
+http://zfin.org/ZDB-GENE-040426-2213	rcc2	VTO_9005686	Trematopidae	0.1	410.396483725
+http://www.informatics.jax.org/marker/MGI:2448492	Kdm6b	VTO_9008111	Odontoholomorphae	0.08	658.988224624
+http://www.ncbi.nlm.nih.gov/gene/10491	CRTAP	VTO_0038468	Curimatidae	0.11	658.848859614
+http://zfin.org/ZDB-GENE-070117-37	reck	VTO_9022400	Pelycosauria	0.06	372.674001079
+http://www.informatics.jax.org/marker/MGI:107595	Sp4	VTO_0033645	Neopterygii	0.26	565.183193327
+http://www.informatics.jax.org/marker/MGI:1932040	Sil1	VTO_0060069	Panaqolus	0.06	366.707354654
+http://zfin.org/ZDB-GENE-070117-2028	drp	VTO_0007160	Incilius	0.06	348.311894559
+http://www.informatics.jax.org/marker/MGI:1202395	Mmp8	VTO_0003369	Pyxicephalinae	0.06	651.967295052
+http://www.informatics.jax.org/marker/MGI:2180849	Oasl1	VTO_9008922	Enchodontidae	0.04	658.985282006
+http://www.informatics.jax.org/marker/MGI:3582583	Sprn	VTO_0083112	Paracassina	0.06	406.303380241
+http://www.ncbi.nlm.nih.gov/gene/6873	TAF2	VTO_0036523	Sisoridae	0.23	641.633520073
+http://www.informatics.jax.org/marker/MGI:107381	Epha1	VTO_9006311	Amphibamidae	0.11	650.301686169
+http://zfin.org/ZDB-GENE-070117-1189	unm_t30181	VTO_9010160	Casea	0.03	315.712419877
+http://zfin.org/ZDB-GENE-070117-1120	unm_t30868	VTO_9000034	Eureptilia	0.02	658.999885973

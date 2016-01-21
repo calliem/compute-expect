@@ -1,4 +1,4 @@
-package org.phenoscape.owl.sim;
+
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,46 +11,55 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.phenoscape.owl.sim.ComparisonScore;
+import org.phenoscape.owl.sim.ExpectScoreComputer;
+
 public class Main {
 
-	private static final String absPath = new File("").getAbsolutePath();
-	private static final String resultsDir = "/data/results/";
-	private static final String scoresSizesPath = absPath + resultsDir
-			+ "Scores_Sizes.txt";
-//			+ "Scores_Sizes_rand20.txt";
-	private static final String profileSizesPath = absPath + resultsDir
-			+ "ProfileSizes.txt";
+	protected static final String absPath = new File("").getAbsolutePath();
+	protected static final String dataDir = "/data";
+	protected static final String resultsDir = "/results";
+	protected static final String testDir = "/test";
+	private static final String scoresSizesPath = absPath + dataDir + testDir
+//			+ "/Scores_Sizes.txt";
+			+ "/Scores_Sizes_rand20.txt";
 
 	private static Collection<ComparisonScore<String>> scoreList = new ArrayList<ComparisonScore<String>>();
 	private static Map<String, Integer> queryProfileSizes = new HashMap<String, Integer>();
 	private static Map<String, Integer> corpusProfileSizes = new HashMap<String, Integer>();
 
 	public static void main(String[] args) {
+		run(scoresSizesPath);
+	}
+	
+	public static Map<String, Double> run(String path){
 		/*
 		 * For testing purposes, we build ScoreGeneTaxon objects from the 
 		 * scores_sizes.txt file created from running the python script. 
 		 * We do this instead of rebuilding it. 
 		 */
-		generateSGTfromScoresSizes(scoresSizesPath);
+		generateSGTfromScoresSizes(path);
+
 
 		ExpectScoreComputer<String> computeExpect = new ExpectScoreComputer<String>();
 		Map<String, Double> expectScores = computeExpect.computeExpectScores(
 				scoreList, corpusProfileSizes, queryProfileSizes);
 		
 		/*
-		 * For testing purposes, write these to a text file for comparison with 
-		 * python script results
+		 * For testing full results, write these to a text file for visual comparison 
+		 * with python script results
 		 */
 		printResultsToTxt(expectScores);
+		
+		return expectScores;
 	}
 	
 	public static void printResultsToTxt(Map<String, Double> scores)
 	{
-		String resultsFilePath = "java_results.txt";
-		System.out.println("Writing to text file");
+		String resultsFilePath = absPath + dataDir + resultsDir + "/java_results.txt";
+		System.out.println("Writing results to " + resultsFilePath);
 		FileWriter fstream;
 	    BufferedWriter out;
-
 	    try {
 			fstream = new FileWriter(resultsFilePath);
 			out = new BufferedWriter(fstream);
@@ -61,7 +70,7 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	   System.out.println("Results done writing to " + resultsFilePath);
+	   System.out.println("Finished writing results to " + resultsFilePath);
 	} 
 	
 	/**
@@ -81,11 +90,10 @@ public class Main {
 			int i = 0;
 			System.out.println("Reading " + filePath);
 			while (line != null) {
-				if (i % 100000 == 0) // total of 10703479 lines
+				if (i % 1000000 == 0) // total of 10703479 lines
 					System.out.println("Reading line " + i);
 
 				if (!line.contains("Score") && !line.contains("score")) { 
-					// TODO:ignore case
 					String[] data = line.trim().split("\t");
 
 					double similarityScore = Double.parseDouble(data[6]);
