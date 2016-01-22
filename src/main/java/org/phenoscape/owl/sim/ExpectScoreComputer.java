@@ -23,11 +23,6 @@ public class ExpectScoreComputer<ID> implements ExpectScoreComputation<ID> {
 		formatData(comparisons, corpusProfileSizes, queryProfileSizes);
 		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
 		double[] param = regM(regression);
-		System.out.println("Estimated Coefficients");
-		System.out.println(param[0]);
-		System.out.println(param[1]);
-		System.out.println(param[2]);
-		System.out.println();
 		return calculateExpectScoresMap(regression, numTaxa);
 	}
 
